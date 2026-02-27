@@ -7,9 +7,136 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="dashboard.css">
     <title>Dashboard - SkillMatch AI</title>
+
+    <style>
+        /* Essential styles for the background */
+        
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: #0f172a;
+            pointer-events: none;
+        }
+        
+        .dashboard-body {
+            background: transparent !important;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .dashboard-container {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            height: calc(100vh - 120px);
+            position: relative;
+            z-index: 10;
+        }
+        /* Sidebar: Sticky Input Area */
+        
+        #staff-input-area {
+            flex: 0 0 380px;
+            position: sticky;
+            top: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            color: white;
+            border-radius: 20px;
+            pointer-events: auto;
+        }
+        /* Results View: Scrollable Grid */
+        
+        #results-list {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            overflow-y: auto;
+            max-height: 100%;
+            padding: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #00f2fe rgba(255, 255, 255, 0.1);
+        }
+        
+        #results-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #results-list::-webkit-scrollbar-thumb {
+            background: #00f2fe;
+            border-radius: 10px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .input-group label {
+            font-size: 0.75rem;
+            color: #00f2fe;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        #staff-input-area input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            outline: none;
+            transition: 0.3s;
+        }
+        
+        #staff-input-area input:focus {
+            border-color: #00f2fe;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+        }
+        
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            color: #94a3b8;
+        }
+        
+        @media (max-width: 1000px) {
+            .dashboard-container {
+                flex-direction: column;
+                height: auto;
+            }
+            #staff-input-area {
+                width: 100%;
+                flex: none;
+                position: relative;
+            }
+        }
+    </style>
 </head>
 
 <body class="dashboard-body">
+    <canvas id="bg-canvas"></canvas>
+
     <nav>
         <h1>SkillMatch <span>AI</span></h1>
         <div class="nav-right">
@@ -17,31 +144,124 @@
         </div>
     </nav>
 
-    <main id="dashboard-content">
-        <div class="card" id="staff-input-area" style="display: block; margin-bottom: 20px;">
-            <h3>Define Internship Requirements</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 15px;">
-                <input type="text" id="ws-name" placeholder="Internship Workspace Name">
-                <input type="number" id="req-python" placeholder="Min FS by PY % Required">
-                <input type="number" id="req-ml" placeholder="Min ML % Required">
-            </div>
-            <button id="algo-btn" onclick="runMatching()" class="btn-run" style="margin-top: 15px;">Search Eligible Students</button>
-        </div>
+    <main id="dashboard-content" class="dashboard-container">
+        <aside id="staff-input-area" class="card">
+            <h3 style="margin-top: 0; color: #00f2fe; letter-spacing: 1px;">Internship Portal</h3>
+            <p style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 20px;">
+                Specify requirements to filter the student database.
+            </p>
 
-        <div id="results-list">
-            <div class="empty-state">
-                <p>Enter requirements above to find eligible candidates.</p>
+            <div class="input-group">
+                <label>Workspace Name</label>
+                <input type="text" id="ws-name" placeholder="e.g. Meta Research">
             </div>
-        </div>
+
+            <div class="input-group">
+                <label>Min Python %</label>
+                <input type="number" id="req-python" placeholder="0-100">
+            </div>
+
+            <div class="input-group">
+                <label>Min ML %</label>
+                <input type="number" id="req-ml" placeholder="0-100">
+            </div>
+
+            <button onclick="runMatching()" class="btn-run" style="margin-top: 20px; padding: 15px;">
+                Search Candidates
+            </button>
+        </aside>
+
+        <section id="results-list">
+            <div class="empty-state">
+                <div style="font-size: 2rem; margin-bottom: 10px;">🔍</div>
+                <p>Waiting for requirements... <br>Enter data on the left to display matches.</p>
+            </div>
+        </section>
     </main>
 
     <script src="script.js"></script>
+
     <script>
-        // Simple logout helper
-        function logout() {
-            sessionStorage.clear();
-            window.location.href = 'login.html';
+        // --- PARTICLE NETWORK ANIMATION ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const mouse = {
+            x: null,
+            y: null,
+            radius: 150
+        };
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+
+            // Update Card Glow Effects
+            document.querySelectorAll('.card').forEach(card => {
+                const rect = card.getBoundingClientRect();
+                card.style.setProperty('--x', `${e.clientX - rect.left}px`);
+                card.style.setProperty('--y', `${e.clientY - rect.top}px`);
+            });
+        });
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = Math.random() * 1 - 0.5;
+                this.speedY = Math.random() * 1 - 0.5;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
+                if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(0, 242, 254, 0.5)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function init() {
+            particles = [];
+            for (let i = 0; i < 80; i++) particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, i) => {
+                p.update();
+                p.draw();
+                for (let j = i; j < particles.length; j++) {
+                    const dx = p.x - particles[j].x;
+                    const dy = p.y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 100) {
+                        ctx.strokeStyle = `rgba(124, 58, 237, ${1 - dist/100})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            });
+            requestAnimationFrame(animate);
+        }
+
+        init();
+        animate();
     </script>
 </body>
 

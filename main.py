@@ -5,7 +5,6 @@ from typing import Dict, List, Optional
 import pandas as pd
 import uvicorn
 import os
-import json
 
 app = FastAPI()
 
@@ -21,7 +20,6 @@ app.add_middleware(
 # --- FILE PATH CONFIGURATION ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FILE_PATH = os.path.join(BASE_DIR, 'data.csv')
-CONFIG_PATH = os.path.join(BASE_DIR, 'data.json')
 
 # Login Database
 USER_DB = {
@@ -35,10 +33,13 @@ USER_DB = {
 # --- HELPER FUNCTIONS ---
 def clean_percent(value):
     """Removes % sign and converts string like '90%' or '0.9' to float 0.9"""
+    if value is None:
+        return 0.0
     if isinstance(value, str):
         clean_val = value.replace('%', '').strip()
         try:
             num = float(clean_val)
+            # Normalize: if user input 90, it becomes 0.9.
             return num / 100 if num > 1.1 else num
         except ValueError:
             return 0.0
@@ -50,10 +51,10 @@ class LoginRequest(BaseModel):
     password: str
     role: str
 
-class RequirementRequest(BaseModel):
+class InternshipRequirement(BaseModel):
     workspace_name: str
-    python_req: float
-    ml_req: float
+    min_python_percent: float  
+    min_ml_percent: float      
 
 # --- ROUTES ---
 
@@ -65,12 +66,14 @@ async def login_check(req: LoginRequest):
 
 @app.get("/student/{roll_no}")
 async def get_single_student(roll_no: str):
+    """Fetches full details for a specific student by Roll Number"""
     try:
         if not os.path.exists(FILE_PATH):
-            return {"error": f"Database file not found"}
+            return {"error": "Database file not found"}
 
         df = pd.read_csv(FILE_PATH)
-        df.columns = df.columns.str.strip()
+        # Normalize headers to handle hidden spaces or case issues
+        df.columns = df.columns.str.strip().str.lower()
         df['roll no'] = df['roll no'].astype(str)
         
         student = df[df['roll no'] == roll_no]
@@ -78,61 +81,60 @@ async def get_single_student(roll_no: str):
             return {"error": "Student record not found"}
             
         row = student.iloc[0]
-        p_val = clean_percent(row['full stock by python'])
-        m_val = clean_percent(row['machine learning'])
         
+        # Returns all fields including Dept and Phone for the 'Full Info' view
         return {
-            "name": row['name'],
-            "roll": row['roll no'],
+            "name": row.get('name', 'Unknown'),
+            "roll": row.get('roll no', roll_no),
+            "dept": row.get('dept', 'N/A'),
+            "phone": str(row.get('ph.no', 'N/A')),
             "skills": {
-                "Python": p_val,
-                "ML": m_val
+                "Python": row.get('full stock by python', '0%'),
+                "ML": row.get('machine learning', '0%')
             }
         }
     except Exception as e:
         return {"error": str(e)}
 
 @app.post("/match")
-async def staff_match(req: RequirementRequest):
-    """
-    Filters students based on staff-defined internship requirements.
-    Students are eligible if their percentages are >= the staff requirements.
-    """
+async def staff_match(req: InternshipRequirement):
+    """Filters students based on staff criteria and returns matching candidates"""
     try:
         if not os.path.exists(FILE_PATH):
-            return {"error": "Missing data.csv file"}
+            return {"error": "data.csv not found"}
             
         df = pd.read_csv(FILE_PATH)
-        df.columns = df.columns.str.strip()
+        df.columns = df.columns.str.strip().str.lower()
         
         eligible_students = []
         
-        # Convert input percentages (e.g., 80) to decimal (0.8) for comparison
-        req_p = req.python_req / 100
-        req_m = req.ml_req / 100
+        # Convert user criteria (e.g. 80) to float (0.8)
+        req_p = req.min_python_percent / 100
+        req_m = req.min_ml_percent / 100
 
         for _, row in df.iterrows():
-            # Extract and Clean Student Skills
-            p_val = clean_percent(row['full stock by python'])
-            m_val = clean_percent(row['machine learning'])
+            p_val = clean_percent(row.get('full stock by python', 0))
+            m_val = clean_percent(row.get('machine learning', 0))
             
-            # Comparison Logic: Must be greater than or equal to staff requirement
             if p_val >= req_p and m_val >= req_m:
                 eligible_students.append({
-                    "name": row['name'],
-                    "roll": row['roll no'],
-                    "python_score": round(p_val * 100, 1),
-                    "ml_score": round(m_val * 100, 1),
-                    "message": f"Eligible for {req.workspace_name} Internship"
+                    "name": row.get('name', 'Unknown'),
+                    "roll": str(row.get('roll no', '000')),
+                    "dept": row.get('dept', 'N/A'),           # Captured for full info
+                    "phone": str(row.get('ph.no', 'N/A')),    # Captured for full info
+                    "python_score": row.get('full stock by python', '0%'),
+                    "ml_score": row.get('machine learning', '0%'),
+                    "workspace": req.workspace_name
                 })
-            
-        return {
-            "workspace": req.workspace_name,
-            "count": len(eligible_students),
-            "students": sorted(eligible_students, key=lambda x: x['python_score'], reverse=True)
-        }
+        
+        # Sort by Python score descending
+        sorted_students = sorted(eligible_students, 
+                                 key=lambda x: clean_percent(x['python_score']), 
+                                 reverse=True)
+        
+        return {"students": sorted_students}
     except Exception as e:
-        return {"error": f"Filtering Error: {str(e)}"}
+        return {"error": f"Filter Error: {str(e)}"}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8002)
