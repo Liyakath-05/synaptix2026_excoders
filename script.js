@@ -1,21 +1,20 @@
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = "http://127.0.0.1:8002";
 
 window.onload = async function() {
     const role = sessionStorage.getItem('userType');
     const id = sessionStorage.getItem('userId');
     const resultsDiv = document.getElementById('results-list');
 
+    // Redirect to login if session is empty
     if (!role || !id) {
-        if (!window.location.href.includes('login.html')) {
-            window.location.href = 'login.html';
-        }
+        window.location.href = 'login.html';
         return;
     }
 
     if (role === 'student') {
+        // --- STUDENT VIEW ---
         document.querySelector('header h1').innerHTML = `Student <span>Profile</span>`;
-        const btn = document.querySelector('header button');
-        if (btn) btn.style.display = 'none';
+        document.querySelector('header button').style.display = 'none';
 
         try {
             const res = await fetch(`${API_BASE}/student/${id}`);
@@ -29,39 +28,45 @@ window.onload = async function() {
                         <h2>Welcome, ${data.name}</h2>
                         <p><strong>Roll No:</strong> ${data.roll}</p>
                         <div class="reasons">
-                            <p>Python Proficiency: ${Math.round(data.skills.Python * 100)}%</p>
-                            <p>ML Proficiency: ${Math.round(data.skills.ML * 100)}%</p>
+                            <p>Python Competency: ${Math.round(data.skills.Python * 100)}%</p>
+                            <p>ML Competency: ${Math.round(data.skills.ML * 100)}%</p>
                         </div>
                     </div>`;
             }
         } catch (e) {
-            resultsDiv.innerHTML = `<div class="card">Error: Backend is offline on port 8001</div>`;
+            resultsDiv.innerHTML = `<div class="card">Error: Backend is offline on port 8002</div>`;
         }
     } else {
+        // --- STAFF VIEW ---
         document.querySelector('header h1').innerHTML = `Staff <span>Matcher</span>`;
     }
 };
 
 async function runMatching() {
     const resultsDiv = document.getElementById('results-list');
-    resultsDiv.innerHTML = "<p>Calculating Weighted Scores...</p>";
+    resultsDiv.innerHTML = "<p>Algorithm is calculating weighted scores...</p>";
 
     try {
-        const res = await fetch(`${API_BASE}/match`, { method: 'POST' });
+        // Triggering the POST /match endpoint
+        const res = await fetch(`${API_BASE}/match`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
         const data = await res.json();
 
-        resultsDiv.innerHTML = data.map(s => `
+        // Map the backend results to HTML cards
+        resultsDiv.innerHTML = data.map(candidate => `
             <div class="card">
-                <span class="score-badge">${s.score}%</span>
-                <h3>${s.name}</h3>
-                <p style="color:#666; font-size:0.85em;">ID: ${s.roll}</p>
+                <span class="score-badge">${candidate.score}%</span>
+                <h3>${candidate.name}</h3>
+                <p style="color:#666; font-size:0.85em;">ID: ${candidate.roll}</p>
                 <div class="reasons">
-                    <strong>Explainable Factors:</strong>
-                    <ul>${s.reasons.map(r => `<li>${r}</li>`).join('')}</ul>
+                    <strong>Match Reasoning:</strong>
+                    <ul>${candidate.reasons.map(r => `<li>${r}</li>`).join('')}</ul>
                 </div>
             </div>
         `).join('');
     } catch (e) {
-        alert("Failed to connect to backend on port 8002");
+        alert("Failed to connect to the backend algorithm on port 8002");
     }
 }

@@ -1,14 +1,13 @@
 {
-    "project_id": "P-101",
+    "project_id": "SKILL-2024-001",
+    "project_name": "AI Development Team Recruitment",
     "requirements": {
-        "Python": 5,
-        "SQL": 4,
-        "Communication": 3
+        "full stock by python": 5,
+        "machine learning": 4
     },
-    "fairness_threshold": 0.8,
-    "name": "matching-platform",
-    "version": "1.0.0",
-    "scripts": {
-        "start": "python main.py"
+    "settings": {
+        "fairness_threshold": 0.7,
+        "api_port": 8002,
+        "version": "1.0.0"
     }
 }

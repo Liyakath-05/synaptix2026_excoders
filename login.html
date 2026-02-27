@@ -35,6 +35,17 @@
             <p onclick="location.reload()" class="back-link">← Back</p>
         </div>
     </div>
+    <div class="container">
+        <header>
+            <h1>SkillMatch <span>AI</span></h1>
+            <button onclick="runMatching()">Run Match Algorithm</button>
+        </header>
+
+        <div id="results-list">
+            <p class="placeholder">Click the button to rank candidates based on weighted competency.</p>
+        </div>
+    </div>
+    <script src="script.js"></script>
     <style>
         .hidden {
             display: none !important;
@@ -58,7 +69,8 @@
             const pw = document.getElementById(type + '-pw').value;
 
             try {
-                const response = await fetch('http://127.0.0.1:8000/login', {
+                // Inside the handleLogin function
+                const response = await fetch('http://127.0.0.1:8002/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -78,7 +90,7 @@
                     alert("Invalid Credentials!");
                 }
             } catch (e) {
-                alert("Ensure main.py is running on port 8001.");
+                alert("Ensure main.py is running on port 8002.");
             }
         }
     </script>
