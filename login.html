@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Login - SkillMatch AI</title>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-box" id="login-selection">
+            <h2>Welcome to SkillMatch AI</h2>
+            <p>Please select your login type</p>
+            <div class="btn-group">
+                <button onclick="showForm('staff')">Staff Login</button>
+                <button onclick="showForm('student')" class="secondary">Student Login</button>
+            </div>
+        </div>
+
+        <div class="login-box hidden" id="staff-form">
+            <h2>Staff Portal</h2>
+            <input type="text" id="staff-id" placeholder="Staff ID">
+            <input type="password" id="staff-pw" placeholder="Password">
+            <button onclick="handleLogin('staff')">Login as Staff</button>
+            <p onclick="location.reload()" class="back-link">← Back</p>
+        </div>
+
+        <div class="login-box hidden" id="student-form">
+            <h2>Student Portal</h2>
+            <input type="text" id="student-id" placeholder="Student Roll No (e.g. 2473A31163)">
+            <input type="password" id="student-pw" placeholder="Password">
+            <button onclick="handleLogin('student')">Login as Student</button>
+            <p onclick="location.reload()" class="back-link">← Back</p>
+        </div>
+    </div>
+    <style>
+        .hidden {
+            display: none !important;
+        }
+    </style>
+
+    <script>
+        // This function handles the "Switching" effect
+        function showForm(type) {
+            // 1. Hide the initial selection box
+            document.getElementById('login-selection').classList.add('hidden');
+
+            // 2. Show the specific form based on 'staff' or 'student'
+            const targetFormId = type + '-form';
+            document.getElementById(targetFormId).classList.remove('hidden');
+        }
+
+        // Your existing login logic
+        async function handleLogin(type) {
+            const id = document.getElementById(type + '-id').value;
+            const pw = document.getElementById(type + '-pw').value;
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userid: id,
+                        password: pw,
+                        role: type
+                    })
+                });
+
+                if (response.ok) {
+                    sessionStorage.setItem('userType', type);
+                    sessionStorage.setItem('userId', id);
+                    window.location.href = 'index.html';
+                } else {
+                    alert("Invalid Credentials!");
+                }
+            } catch (e) {
+                alert("Ensure main.py is running on port 8001.");
+            }
+        }
+    </script>
+</body>
+
+</html>

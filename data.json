@@ -5,5 +5,10 @@
         "SQL": 4,
         "Communication": 3
     },
-    "fairness_threshold": 0.8
+    "fairness_threshold": 0.8,
+    "name": "matching-platform",
+    "version": "1.0.0",
+    "scripts": {
+        "start": "python main.py"
+    }
 }
