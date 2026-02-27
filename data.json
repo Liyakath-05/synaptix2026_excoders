@@ -1,0 +1,9 @@
+{
+    "project_id": "P-101",
+    "requirements": {
+        "Python": 5,
+        "SQL": 4,
+        "Communication": 3
+    },
+    "fairness_threshold": 0.8
+}
