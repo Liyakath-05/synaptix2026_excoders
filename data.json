@@ -1,12 +1,17 @@
 {
-    "project_id": "SKILL-2024-001",
-    "project_name": "AI Development Team Recruitment",
-    "requirements": {
-        "full stock by python": 5,
-        "machine learning": 4
+    "project_id": "SKILL-2026-INT-001",
+    "project_name": "AI Internship 2026",
+    "min_experience_months": 6,
+    "weights": {
+        "python_weight": 5,
+        "ml_weight": 4
+    },
+    "thresholds": {
+        "mastery": 0.8,
+        "low_proficiency": 0.3,
+        "fairness_threshold": 0.7
     },
     "settings": {
-        "fairness_threshold": 0.7,
         "api_port": 8002,
         "version": "1.0.0"
     }

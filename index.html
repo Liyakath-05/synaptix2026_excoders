@@ -2,21 +2,26 @@
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8">
     <link rel="stylesheet" href="style.css">
-    <title>SkillMatch AI</title>
+    <title>Dashboard - SkillMatch AI</title>
 </head>
 
-<body>
-    <div class="container">
-        <header>
-            <h1>SkillMatch <span>AI</span></h1>
-            <button onclick="runMatching()">Run Match Algorithm</button>
-        </header>
-
-        <div id="results-list">
-            <p class="placeholder">Click the button to rank candidates based on weighted competency.</p>
+<body class="dashboard-body">
+    <nav>
+        <h1>SkillMatch <span>AI</span></h1>
+        <div class="nav-right">
+            <button id="algo-btn" onclick="runMatching()" class="btn-run">Analyze Candidates</button>
+            <button onclick="logout()" class="secondary" style="width: auto; margin-left: 10px;">Logout</button>
         </div>
-    </div>
+    </nav>
+
+    <main id="results-list">
+        <div class="empty-state">
+            <p>System authenticated. Ready for data analysis.</p>
+        </div>
+    </main>
+
     <script src="script.js"></script>
 </body>
 

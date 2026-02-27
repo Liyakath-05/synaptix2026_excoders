@@ -5,68 +5,95 @@ window.onload = async function() {
     const id = sessionStorage.getItem('userId');
     const resultsDiv = document.getElementById('results-list');
 
-    // Redirect to login if session is empty
+    // 1. Session Guard: Redirect to login if session is empty
     if (!role || !id) {
         window.location.href = 'login.html';
         return;
     }
 
     if (role === 'student') {
-        // --- STUDENT VIEW ---
-        document.querySelector('header h1').innerHTML = `Student <span>Profile</span>`;
-        document.querySelector('header button').style.display = 'none';
+        // --- STUDENT PROFILE VIEW ---
+        document.querySelector('header h1, nav h1').innerHTML = `Student <span>Profile</span>`;
+        // Hide the "Run" button for students
+        const runBtn = document.querySelector('.btn-run, header button');
+        if (runBtn) runBtn.style.display = 'none';
 
         try {
             const res = await fetch(`${API_BASE}/student/${id}`);
             const data = await res.json();
 
             if (data.error) {
-                resultsDiv.innerHTML = `<div class="card">${data.error}</div>`;
+                resultsDiv.innerHTML = `<div class="card" style="border-color: red;">${data.error}</div>`;
             } else {
                 resultsDiv.innerHTML = `
-                    <div class="card" style="border-left: 5px solid #28a745;">
-                        <h2>Welcome, ${data.name}</h2>
-                        <p><strong>Roll No:</strong> ${data.roll}</p>
-                        <div class="reasons">
-                            <p>Python Competency: ${Math.round(data.skills.Python * 100)}%</p>
-                            <p>ML Competency: ${Math.round(data.skills.ML * 100)}%</p>
+                    <div class="card" style="border-left: 5px solid #2563eb;">
+                        <div class="score-ring">Hi</div>
+                        <div class="details">
+                            <h2>Welcome, ${data.name}</h2>
+                            <p><strong>Roll No:</strong> ${data.roll}</p>
+                            <div class="reasoning">
+                                <strong>Your Technical Breakdown:</strong>
+                                <ul>
+                                    <li>Python Competency: ${Math.round(data.skills.Python * 100)}%</li>
+                                    <li>ML Competency: ${Math.round(data.skills.ML * 100)}%</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>`;
             }
         } catch (e) {
-            resultsDiv.innerHTML = `<div class="card">Error: Backend is offline on port 8002</div>`;
+            resultsDiv.innerHTML = `<div class="card" style="border-color: red;">Error: Backend is offline on port 8002</div>`;
         }
     } else {
-        // --- STAFF VIEW ---
-        document.querySelector('header h1').innerHTML = `Staff <span>Matcher</span>`;
+        // --- STAFF MATCHER VIEW ---
+        const h1 = document.querySelector('header h1, nav h1');
+        if (h1) h1.innerHTML = `Staff <span>Matcher</span>`;
     }
 };
 
+/**
+ * The Brain: Skill-Based Matching Algorithm
+ * Fulfills: Explainable Ranking & Weighted Scoring
+ */
 async function runMatching() {
-    const resultsDiv = document.getElementById('results-list');
-    resultsDiv.innerHTML = "<p>Algorithm is calculating weighted scores...</p>";
+    const list = document.getElementById('results-list');
+    list.innerHTML = "<div class='card'><div class='loader'></div> Calculating explainable Match Scores...</div>";
 
     try {
-        // Triggering the POST /match endpoint
-        const res = await fetch(`${API_BASE}/match`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        const data = await res.json();
+        const response = await fetch(`${API_BASE}/match`, { method: 'POST' });
+        const data = await response.json();
 
-        // Map the backend results to HTML cards
-        resultsDiv.innerHTML = data.map(candidate => `
+        if (data.error) throw new Error(data.error);
+
+        // Map data to the Explainable Ranking UI
+        list.innerHTML = data.map(candidate => `
             <div class="card">
-                <span class="score-badge">${candidate.score}%</span>
-                <h3>${candidate.name}</h3>
-                <p style="color:#666; font-size:0.85em;">ID: ${candidate.roll}</p>
-                <div class="reasons">
-                    <strong>Match Reasoning:</strong>
-                    <ul>${candidate.reasons.map(r => `<li>${r}</li>`).join('')}</ul>
+                <div class="score-ring">${candidate.score}%</div>
+                <div class="details">
+                    <h3>${candidate.name}</h3>
+                    <p class="id">Roll No: ${candidate.roll}</p>
+                    <div class="reasoning">
+                        <strong>Match Reasoning:</strong>
+                        <ul>
+                            ${candidate.reasons.map(r => `<li>${r}</li>`).join('')}
+                        </ul>
+                    </div>
                 </div>
             </div>
         `).join('');
-    } catch (e) {
-        alert("Failed to connect to the backend algorithm on port 8002");
+
+    } catch (error) {
+        list.innerHTML = `
+            <div class="card" style="border-color: #ef4444; color: #b91c1c;">
+                <strong>Backend Error:</strong> ${error.message}. Please ensure main.py is running.
+            </div>`;
     }
+}
+
+/**
+ * Logout and clear session
+ */
+function logout() {
+    sessionStorage.clear();
+    window.location.href = 'login.html';
 }

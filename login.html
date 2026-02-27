@@ -3,7 +3,6 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <title>Login - SkillMatch AI</title>
 </head>
@@ -29,47 +28,24 @@
 
         <div class="login-box hidden" id="student-form">
             <h2>Student Portal</h2>
-            <input type="text" id="student-id" placeholder="Student Roll No (e.g. 2473A31163)">
+            <input type="text" id="student-id" placeholder="Student Roll No">
             <input type="password" id="student-pw" placeholder="Password">
             <button onclick="handleLogin('student')">Login as Student</button>
             <p onclick="location.reload()" class="back-link">← Back</p>
         </div>
     </div>
-    <div class="container">
-        <header>
-            <h1>SkillMatch <span>AI</span></h1>
-            <button onclick="runMatching()">Run Match Algorithm</button>
-        </header>
-
-        <div id="results-list">
-            <p class="placeholder">Click the button to rank candidates based on weighted competency.</p>
-        </div>
-    </div>
-    <script src="script.js"></script>
-    <style>
-        .hidden {
-            display: none !important;
-        }
-    </style>
 
     <script>
-        // This function handles the "Switching" effect
         function showForm(type) {
-            // 1. Hide the initial selection box
             document.getElementById('login-selection').classList.add('hidden');
-
-            // 2. Show the specific form based on 'staff' or 'student'
-            const targetFormId = type + '-form';
-            document.getElementById(targetFormId).classList.remove('hidden');
+            document.getElementById(type + '-form').classList.remove('hidden');
         }
 
-        // Your existing login logic
         async function handleLogin(type) {
             const id = document.getElementById(type + '-id').value;
             const pw = document.getElementById(type + '-pw').value;
 
             try {
-                // Inside the handleLogin function
                 const response = await fetch('http://127.0.0.1:8002/login', {
                     method: 'POST',
                     headers: {
@@ -85,15 +61,14 @@
                 if (response.ok) {
                     sessionStorage.setItem('userType', type);
                     sessionStorage.setItem('userId', id);
+                    // Redirect to the separate dashboard page
                     window.location.href = 'index.html';
                 } else {
                     alert("Invalid Credentials!");
                 }
             } catch (e) {
-                alert("Ensure main.py is running on port 8002.");
+                alert("Backend offline. Run main.py on port 8002.");
             }
         }
     </script>
 </body>
-
-</html>
