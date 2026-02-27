@@ -3,14 +3,29 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <title>Login - SkillMatch AI</title>
+    <title>Login - PBR VITS SkillMatch AI</title>
 </head>
 
-<body>
+<body class="login-page">
+
+    <div class="inst-header">
+        <img src="vitslogo.jpeg" class="logo" alt="PBR VITS Logo">
+        <div class="header-content">
+            <h1>PARVATHAREDDY BABUL REDDY</h1>
+            <h2>VISVODAYA INSTITUTE OF TECHNOLOGY AND SCIENCE</h2>
+            <p><b>(AUTONOMOUS)</b></p>
+            <p>(Approved by AICTE, New Delhi, Accredited by NAAC and Permanently Affiliated to JNTUA, Ananthapuramu)</p>
+            <p><b>KAVALI-524201, S.P.S.R Nellore Dist., A.P, India.</b></p>
+        </div>
+        <img src="founder.jpeg" class="founder" alt="Founder">
+    </div>
+
     <div class="login-container">
+
         <div class="login-box" id="login-selection">
-            <h2>Welcome to SkillMatch AI</h2>
+            <h2>Welcome to SkillMatch <span>AI</span></h2>
             <p>Please select your login type</p>
             <div class="btn-group">
                 <button onclick="showForm('staff')">Staff Login</button>
@@ -33,6 +48,7 @@
             <button onclick="handleLogin('student')">Login as Student</button>
             <p onclick="location.reload()" class="back-link">← Back</p>
         </div>
+
     </div>
 
     <script>
@@ -61,7 +77,6 @@
                 if (response.ok) {
                     sessionStorage.setItem('userType', type);
                     sessionStorage.setItem('userId', id);
-                    // Redirect to the separate dashboard page
                     window.location.href = 'index.html';
                 } else {
                     alert("Invalid Credentials!");
@@ -72,3 +87,5 @@
         }
     </script>
 </body>
+
+</html>

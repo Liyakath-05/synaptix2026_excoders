@@ -19,61 +19,135 @@ body,
 html {
     height: 100%;
     margin: 0;
+    padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg);
     color: var(--text-dark);
+    overflow: hidden;
+    /* Prevents scroll on login */
 }
 
 
-/* --- DASHBOARD SPECIFIC BODY --- */
+/* --- INSTITUTIONAL HEADER (TRANSPARENT) --- */
 
+.inst-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: transparent;
+    padding: 20px 5%;
+    position: absolute;
+    /* Floats over the background image */
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1010;
+    /* Ensure it stays above login container */
+}
 
-/* This class should be added to the <body> tag in index.html only */
-
-.dashboard-body {
-    overflow-x: hidden;
-    background: var(--bg);
+.inst-header .logo,
+.inst-header .founder {
+    width: 120px;
+    /* Adjust size for clear viewing */
     height: auto;
-    /* Allows the page to grow with content */
+    filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.3));
+    /* Makes images pop */
+}
+
+.header-content {
+    text-align: center;
+    flex: 1;
+    font-family: "Times New Roman", serif;
+}
+
+.header-content h1,
+.header-content h2,
+.header-content p {
+    color: white !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    margin: 2px 0;
+}
+
+.header-content h1 {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.header-content h2 {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.header-content p {
+    font-size: 14px;
 }
 
 
 /* --- LOGIN SCREEN (FULL PAGE BACKGROUND) --- */
 
 .login-container {
+    height: 100vh;
+    width: 100vw;
     background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('pbrvits.jpeg');
-    height: 100%;
+    background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-size: cover;
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Keeps login isolated */
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
     z-index: 1000;
 }
 
 .login-box {
-    background-color: rgba(255, 255, 255, 0.98);
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    background: transparent;
+    /* Face only / No white box */
     text-align: center;
-    width: 380px;
+    width: 400px;
+    padding: 20px;
     position: relative;
     animation: fadeIn 0.4s ease-out;
+}
+
+.login-box h2,
+.login-box p {
+    color: white;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 1);
+}
+
+.login-box input {
+    background: rgba(255, 255, 255, 0.15);
+    /* Glass effect */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    width: 100%;
+    backdrop-filter: blur(10px);
+    /* Blurs the image behind the inputs */
+}
+
+.login-box input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+
+/* --- DASHBOARD SPECIFIC --- */
+
+.dashboard-body {
+    overflow-x: hidden;
+    background: var(--bg);
+    height: auto;
+    overflow-y: auto;
+    /* Re-enable scroll for dashboard */
 }
 
 .hidden {
     display: none !important;
 }
-
-
-/* --- DASHBOARD & NAVIGATION --- */
 
 nav {
     background: var(--white);
@@ -85,12 +159,6 @@ nav {
     position: sticky;
     top: 0;
     z-index: 100;
-}
-
-nav h1,
-nav h2 {
-    margin: 0;
-    font-size: 1.5rem;
 }
 
 span {
@@ -109,6 +177,7 @@ main {
 /* --- INTERACTIVE ELEMENTS --- */
 
 button {
+    width: 100%;
     background-color: var(--primary);
     color: var(--white);
     border: none;
@@ -116,6 +185,7 @@ button {
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
+    margin-top: 10px;
     transition: all 0.2s ease;
 }
 
@@ -128,37 +198,18 @@ button.secondary {
     background-color: #6c757d;
 }
 
-button.secondary:hover {
-    background-color: #5a6268;
-}
-
-.btn-run {
-    padding: 12px 28px;
-    font-size: 1rem;
-}
-
-input {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-}
-
 .back-link {
     margin-top: 20px;
     cursor: pointer;
     color: var(--primary);
     display: block;
     font-size: 0.9em;
+    text-shadow: none;
+    /* Reset shadow for dashboard view */
 }
 
-.back-link:hover {
-    text-decoration: underline;
-}
 
-
-/* --- RESULT CARDS (THE EXPLAINABLE UI) --- */
+/* --- RESULT CARDS --- */
 
 .card {
     background: var(--white);
@@ -186,17 +237,6 @@ input {
     flex-shrink: 0;
 }
 
-h3 {
-    margin: 0;
-    font-size: 1.25rem;
-}
-
-.id {
-    color: var(--text-muted);
-    margin: 4px 0;
-    font-size: 0.9rem;
-}
-
 .reasoning {
     margin-top: 10px;
     background: #f1f5f9;
@@ -206,25 +246,8 @@ h3 {
     color: #475569;
 }
 
-ul {
-    margin: 8px 0 0 0;
-    padding-left: 20px;
-}
-
 
 /* --- ANIMATIONS & LOADERS --- */
-
-.loader {
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid var(--primary);
-    border-radius: 50%;
-    width: 22px;
-    height: 22px;
-    animation: spin 1s linear infinite;
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: 12px;
-}
 
 @keyframes spin {
     0% {
