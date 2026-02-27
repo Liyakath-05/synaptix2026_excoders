@@ -14,9 +14,9 @@ window.onload = async function() {
     if (role === 'student') {
         // --- STUDENT PROFILE VIEW ---
         document.querySelector('header h1, nav h1').innerHTML = `Student <span>Profile</span>`;
-        // Hide the "Run" button for students
-        const runBtn = document.querySelector('.btn-run, header button');
-        if (runBtn) runBtn.style.display = 'none';
+        // Hide the staff input area for students
+        const inputArea = document.getElementById('staff-input-area');
+        if (inputArea) inputArea.style.display = 'none';
 
         try {
             const res = await fetch(`${API_BASE}/student/${id}`);
@@ -48,44 +48,62 @@ window.onload = async function() {
         // --- STAFF MATCHER VIEW ---
         const h1 = document.querySelector('header h1, nav h1');
         if (h1) h1.innerHTML = `Staff <span>Matcher</span>`;
+        // Ensure input area is visible for staff
+        const inputArea = document.getElementById('staff-input-area');
+        if (inputArea) inputArea.style.display = 'block';
     }
 };
 
 /**
- * The Brain: Skill-Based Matching Algorithm
- * Fulfills: Explainable Ranking & Weighted Scoring
+ * Staff Matcher Logic: Fetches students eligible based on workspace requirements
  */
 async function runMatching() {
-    const list = document.getElementById('results-list');
-    list.innerHTML = "<div class='card'><div class='loader'></div> Calculating explainable Match Scores...</div>";
+    const wsName = document.getElementById('ws-name').value;
+    const pythonReq = document.getElementById('req-python').value;
+    const mlReq = document.getElementById('req-ml').value;
+
+    if (!wsName || !pythonReq || !mlReq) {
+        alert("Please fill in all requirements!");
+        return;
+    }
+
+    const resultsList = document.getElementById('results-list');
+    resultsList.innerHTML = '<div class="card"><div class="loader"></div> Searching for eligible candidates...</div>';
 
     try {
-        const response = await fetch(`${API_BASE}/match`, { method: 'POST' });
+        const response = await fetch(`${API_BASE}/match`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                workspace_name: wsName,
+                python_req: parseFloat(pythonReq),
+                ml_req: parseFloat(mlReq)
+            })
+        });
+
         const data = await response.json();
+        resultsList.innerHTML = ""; // Clear loader
 
-        if (data.error) throw new Error(data.error);
-
-        // Map data to the Explainable Ranking UI
-        list.innerHTML = data.map(candidate => `
-            <div class="card">
-                <div class="score-ring">${candidate.score}%</div>
-                <div class="details">
-                    <h3>${candidate.name}</h3>
-                    <p class="id">Roll No: ${candidate.roll}</p>
-                    <div class="reasoning">
-                        <strong>Match Reasoning:</strong>
-                        <ul>
-                            ${candidate.reasons.map(r => `<li>${r}</li>`).join('')}
-                        </ul>
+        if (data.students && data.students.length > 0) {
+            resultsList.innerHTML = data.students.map(student => `
+                <div class="card">
+                    <div class="score-ring">${student.python_score}%</div>
+                    <div class="details">
+                        <h3>${student.name}</h3>
+                        <p class="id">Roll No: ${student.roll}</p>
+                        <p style="color: #22c55e; font-weight: bold; margin-top: 8px;">
+                            ✓ ${student.message}
+                        </p>
                     </div>
                 </div>
-            </div>
-        `).join('');
-
+            `).join('');
+        } else {
+            resultsList.innerHTML = '<div class="empty-state">No students met these specific requirements.</div>';
+        }
     } catch (error) {
-        list.innerHTML = `
+        resultsList.innerHTML = `
             <div class="card" style="border-color: #ef4444; color: #b91c1c;">
-                <strong>Backend Error:</strong> ${error.message}. Please ensure main.py is running.
+                <strong>Backend Error:</strong> Backend offline. Please ensure your FastAPI server is running.
             </div>`;
     }
 }
@@ -97,3 +115,54 @@ function logout() {
     sessionStorage.clear();
     window.location.href = 'login.html';
 }
+
+/**
+ * Spider-sense UI Effect
+ */
+(function() {
+    const resultsList = document.getElementById('results-list');
+
+    function updateCardSpiderState(card, near) {
+        if (near) {
+            card.setAttribute('data-spider', 'true');
+            card.setAttribute('data-spider-near', 'true');
+        } else {
+            card.setAttribute('data-spider', 'false');
+            card.setAttribute('data-spider-near', 'false');
+        }
+    }
+
+    function bindCard(card) {
+        updateCardSpiderState(card, false);
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const w = rect.width,
+                h = rect.height;
+            const thresh = Math.min(40, Math.max(20, Math.min(w, h) * 0.25));
+
+            const near = x < thresh || (w - x) < thresh || y < thresh || (h - y) < thresh;
+            updateCardSpiderState(card, near);
+        });
+        card.addEventListener('mouseleave', () => updateCardSpiderState(card, false));
+    }
+
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((m) => {
+            if (m.addedNodes.length) {
+                m.addedNodes.forEach((node) => {
+                    if (node instanceof HTMLElement) {
+                        if (node.classList.contains('card')) bindCard(node);
+                        node.querySelectorAll('.card').forEach(bindCard);
+                    }
+                });
+            }
+        });
+    });
+
+    if (resultsList) {
+        observer.observe(resultsList, { childList: true, subtree: true });
+        resultsList.querySelectorAll('.card').forEach(bindCard);
+    }
+})();

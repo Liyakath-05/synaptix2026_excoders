@@ -3,7 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
     <title>Dashboard - SkillMatch AI</title>
 </head>
 
@@ -11,18 +13,36 @@
     <nav>
         <h1>SkillMatch <span>AI</span></h1>
         <div class="nav-right">
-            <button id="algo-btn" onclick="runMatching()" class="btn-run">Analyze Candidates</button>
             <button onclick="logout()" class="secondary" style="width: auto; margin-left: 10px;">Logout</button>
         </div>
     </nav>
 
-    <main id="results-list">
-        <div class="empty-state">
-            <p>System authenticated. Ready for data analysis.</p>
+    <main id="dashboard-content">
+        <div class="card" id="staff-input-area" style="display: block; margin-bottom: 20px;">
+            <h3>Define Internship Requirements</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 15px;">
+                <input type="text" id="ws-name" placeholder="Internship Workspace Name">
+                <input type="number" id="req-python" placeholder="Min FS by PY % Required">
+                <input type="number" id="req-ml" placeholder="Min ML % Required">
+            </div>
+            <button id="algo-btn" onclick="runMatching()" class="btn-run" style="margin-top: 15px;">Search Eligible Students</button>
+        </div>
+
+        <div id="results-list">
+            <div class="empty-state">
+                <p>Enter requirements above to find eligible candidates.</p>
+            </div>
         </div>
     </main>
 
     <script src="script.js"></script>
+    <script>
+        // Simple logout helper
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+    </script>
 </body>
 
 </html>
